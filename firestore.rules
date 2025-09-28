@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Reports subcollection - user can only access their own reports
+      match /reports/{reportId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Analyses subcollection - user can only access their own analyses
+      match /analyses/{analysisId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Translations subcollection - user can only access their own translations
+      match /translations/{translationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Audit subcollection (optional) - user can only read their own audit logs
+      match /audit/{auditId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false; // Only server can write audit logs
+      }
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
